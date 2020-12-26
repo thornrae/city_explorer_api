@@ -66,7 +66,7 @@ function Weather (result) {
   // this.time = result.data.datetime;
   // this.description = result.data.weather.description;
   this.time = result.datetime;
-  this.description = result.weather.description;
+  this.description = result.data.weather.description;
 }
 
 // Start our server
