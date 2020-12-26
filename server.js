@@ -21,6 +21,8 @@ app.get('/', (request, response) =>{
 //location route
 app.get('/location', locationHandler);
 //catch all route to display 404 error message/shows that server does exist but this specific route DNE
+app.get('/weather', weatherHandler);
+
 app.use('*', (request, response)=>{
   response.send('404: This page does not exist');
 });
@@ -39,7 +41,17 @@ function locationHandler(request, response) {
   const locationData = new Location(city, location);
 
   response.send(locationData);
-    
+}
+
+function weatherHandler(request, response){
+  const weatherData = require('./data/weather.json');
+  // const city = request.query.city;
+  // const weatherData = new Weather(city, location);
+  const weatherArr = [];
+  weatherData.data.forEach(weather => {
+    weatherArr.push(new Weather(weather));
+  });
+  response.send(weatherArr);
 }
 
 // Constructor 
@@ -48,6 +60,13 @@ function Location(city, geoData){
   this.formatted_query = geoData[0].display_name;
   this.latitude = geoData[0].lat;
   this.longitude = geoData[0].lon;
+}
+
+function Weather (result) {
+  // this.time = result.data.datetime;
+  // this.description = result.data.weather.description;
+  this.time = result.datetime;
+  this.description = result.weather.description;
 }
 
 // Start our server
