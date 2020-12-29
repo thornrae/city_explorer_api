@@ -8,36 +8,30 @@ const cors = require('cors');
 
 
 //Step 2: set up your application
+//need this line or else server wont run I believe button
 const app = express();
 // create PORT local request PORT 3000 need to create a port your server is going to listen on
 const PORT = process.env.PORT;
 app.use(cors());
 
-//Step 3: Routes
+
+//ROUTES
 app.get('/', (request, response) =>{
   response.send('sup world');
 });
-
-//location route
 app.get('/location', locationHandler);
-//catch all route to display 404 error message/shows that server does exist but this specific route DNE
 app.get('/weather', weatherHandler);
-
-app.use('*', (request, response)=>{
-  response.send('404: This page does not exist');
-});
-
+app.use('*', errorHandler);
 
 // Function Handlers
 function locationHandler(request, response) {
   // response.send('Welcome to the location route!'); - USE TO TEST ROUTE WORKS, yes.
 
-  //this function will do two things:
   //request data from our data files
-  //tailor/normalize data use a constructor
-  //respond with the data (show up in browser)
   const location = require('./data/location.json');
+  //respond with the data (show up in browser) - gets data that was input in search field. variable city is whatever was typed in the box 
   const city = request.query.city;
+  //tailor/normalize data use a constructor
   const locationData = new Location(city, location);
 
   response.send(locationData);
@@ -45,8 +39,6 @@ function locationHandler(request, response) {
 
 function weatherHandler(request, response){
   const weatherData = require('./data/weather.json');
-  // const city = request.query.city;
-  // const weatherData = new Weather(city, location);
   const weatherArr = [];
   weatherData.data.forEach(weather => {
     weatherArr.push(new Weather(weather));
@@ -63,10 +55,8 @@ function Location(city, geoData){
 }
 
 function Weather (result) {
-  // this.time = result.data.datetime;
-  // this.description = result.data.weather.description;
   this.time = result.datetime;
-  this.description = result.weather.description;
+  this.forecast = result.weather.description;
 }
 
 // Start our server
@@ -74,5 +64,7 @@ app.listen(PORT, () => {
   console.log(`Now listening on port, ${PORT}`);
 });
 
-
+function errorHandler(request, response) {
+  response.status(500).send('Sorry, something went wrong');
+}
 
