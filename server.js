@@ -21,7 +21,7 @@ app.get('/', (request, response) =>{
   //status(200) is a HTTP code there are many of these look them up
   response.status(200).send('sup world');
 });
-// app.get('/location', locationHandler); lab06 way.
+// app.get('/location', locationHandler); lab06 way
 app.get('/location', locationHandler);
 
 app.get('/weather', weatherHandler);
@@ -30,9 +30,11 @@ app.use('*', errorHandler);
 
 // Function Handlers
 function locationHandler(request, response) {
+
   let city = request.query.city;
   let key = process.env.GEOCODE_API_KEY;
   const url = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
+
   console.log(url);
   //this makes asynch call to our API url
   superagent.get(url)
@@ -48,26 +50,28 @@ function locationHandler(request, response) {
       //status 200 means sent successfully
       response.status(200).send(location);
 
-  // // response.send('Welcome to the location route!'); - USE TO TEST ROUTE WORKS, yes.
 
-  // //request data from our data files
-  // const location = require('./data/location.json');
-  // //respond with the data (show up in browser) - gets data that was input in search field. variable city is whatever was typed in the box 
-  // const city = request.query.city;
-  // //tailor/normalize data use a constructor
-  // const locationData = new Location(city, location);
-
-  // response.send(locationData);
+    });
 }
 
 function weatherHandler(request, response){
-  //console.log the request.body - checkout what keys you are being sent because they will be different from location
-  const weatherData = require('./data/weather.json');
-  const weatherArr = [];
-  weatherData.data.forEach(weather => {
-    weatherArr.push(new Weather(weather));
-  });
-  response.send(weatherArr);
+
+  let key = process.env.WEATHER_API_KEY;
+  const url = `http://api.weatherbit.io/v2.0/forecast/daily&lat=${request.query.latitude}&lon=${request.query.longitude}&key=${key}`;
+
+  console.log(url);
+  superagent.get(url)
+    // .set('user-key', process.env.WEATHER_API_KEY)
+    .then( data => {
+      console.log(data.body);
+    });
+
+  // const weatherData = require('./data/weather.json');
+  // const weatherArr = [];
+  // weatherData.data.forEach(weather => {
+  //   weatherArr.push(new Weather(weather));
+  // });
+  // response.send(weatherArr);
 }
 
 // Constructor 
