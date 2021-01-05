@@ -57,14 +57,30 @@ function locationHandler(request, response) {
 function weatherHandler(request, response){
 
   let key = process.env.WEATHER_API_KEY;
-  const url = `http://api.weatherbit.io/v2.0/forecast/daily&lat=${request.query.latitude}&lon=${request.query.longitude}&key=${key}`;
+  const url = `http://api.weatherbit.io/v2.0/forecast/daily?lat=${request.query.latitude}&lon=${request.query.longitude}&key=${key}`;
 
-  console.log(url);
-  superagent.get(url)
+  // console.log('line 62 console' + url);
+  let descriptionData;
+
+  return superagent.get(url)
     // .set('user-key', process.env.WEATHER_API_KEY)
     .then( data => {
-      console.log(data.body);
-    });
+      try{
+        descriptionData = data.body.data.map(weatherData => {
+          return new Weather(weatherData);
+          // console.log('console log71', descriptionData);
+          // return descriptionData;
+        });
+        console.log('line74', descriptionData);
+        response.status(200).json(descriptionData);
+        // return descriptionData;
+      }
+      catch(error) {
+        console.log(error);
+      }
+    }
+    );
+}
 
   // const weatherData = require('./data/weather.json');
   // const weatherArr = [];
@@ -72,7 +88,6 @@ function weatherHandler(request, response){
   //   weatherArr.push(new Weather(weather));
   // });
   // response.send(weatherArr);
-}
 
 // Constructor 
 function Location(city, geoData){
