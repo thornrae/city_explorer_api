@@ -1,13 +1,13 @@
 'use strict';
 
-//Step 1: bring in dependencies
+//DEPENDENCES
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const superagent = require('superagent');
 
 
-//Step 2: start your application
+//START APPLICATION
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(cors());
@@ -21,7 +21,7 @@ app.get('/location', locationHandler);
 app.get('/weather', weatherHandler);
 app.use('*', errorHandler);
 
-// Function Handlers
+// FUNCTIONS
 function locationHandler(request, response) {
 
   let city = request.query.city;
@@ -39,7 +39,6 @@ function locationHandler(request, response) {
 }
 
 function weatherHandler(request, response){
-
   let key = process.env.WEATHER_API_KEY;
   const url = `http://api.weatherbit.io/v2.0/forecast/daily?lat=${request.query.latitude}&lon=${request.query.longitude}&key=${key}`;
 
@@ -61,7 +60,11 @@ function weatherHandler(request, response){
     );
 }
 
-// Constructor
+function errorHandler(request, response) {
+  response.status(500).send('Sorry, something went wrong');
+}
+
+// CONSTRUCTORS
 function Location(city, geoData){
   this.search_query = city;
   this.formatted_query = geoData.display_name;
@@ -70,15 +73,16 @@ function Location(city, geoData){
 }
 
 function Weather (result) {
-  this.time = result.datetime;
+  this.time = new Date(result.datetime).toDateString();
   this.forecast = result.weather.description;
+
+  console.log();
 }
+
 
 app.listen(PORT, () => {
   console.log(`Now listening on port, ${PORT}`);
 });
 
-function errorHandler(request, response) {
-  response.status(500).send('Sorry, something went wrong');
-}
+
 
