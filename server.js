@@ -14,7 +14,6 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 const client = new pg.Client(process.env.DATABASE_URL);
 
-//what is this doing?
 client.on('error', err => {
   throw err;
 });
@@ -24,52 +23,19 @@ app.get('/', (request, response) => {
   response.status(200).send('hello world');
 });
 
-app.get('/add', (request, response) => {
-  //this console log gets you an empty object - simulate properties by appending the /add in the browser ?q=TAYLOR (q is potatoe) ==> injects your own query, simulates typing in seattle and clicking explore
-  // console.log(request.query);
-  let city = request.query.city;
-  let lon = request.query.longitude;
-  let lat = request.query.latitude;
-  let formatted = request.formatted_query;
-
-
-  let SQL = 'INSERT INTO location (city, lon, lat) VALUES ($1, $2, $3, $4) RETURNING *'; // refs columns
-
-  //creates parametrized queries to prevents SQL injection maps to $1 $2 $3
-  let safeValues = [city, lon, lat, formatted];
-
-  //now can make request itself no semi colon because working w promised
-  client.query(SQL, safeValues)
-  //use .then bc promises - to return to us results from that query
-    .then( results => {
-      response.status(200).json(results);
-    })
-    .catch(error => {
-      console.log(error);
-    });
-
-
-
-});
-
-//start database
-client.connect()
-  .then( () => {
-    app.listen(PORT, () => {
-      console.log(`now listening on port ${PORT}`);
-      console.log(`connected to database ${client.connectionParameters.database}`);
-    });
-  });
-
-
-//ROUTES
-//lab07
-// app.get('/', (request, response) =>{
-//   response.status(200).send('sup world');
-// });
 app.get('/location', locationHandler);
 app.get('/weather', weatherHandler);
 app.use('*', errorHandler);
+
+//prob remove this
+// app.get('/add', (request, response) => {
+
+//   let city = request.query.city;
+//   let lon = request.query.longitude;
+//   let lat = request.query.latitude;
+//   let formatted = request.formatted_query;
+// });
+
 
 // FUNCTIONS
 function locationHandler(request, response) {
@@ -78,15 +44,48 @@ function locationHandler(request, response) {
   let key = process.env.GEOCODE_API_KEY;
   const url = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
 
-  // console.log(url);
-  superagent.get(url)
-    .then( data => {
-      console.log(data.body[0]);
-      const locationData = data.body[0];
-      const location = new Location(city, locationData);
-      response.status(200).send(location);
+  //TODO: we want to check the database for the location data, if location is not in database, make API call(SQL: SELECT) can do SELECT * rather than having all of them listed
+  let SQL = 'SELECT search_query, latitude, longitude, formatted_query FROM location WHERE search_query =  $1';
+  let safeValues = [city];
+
+  client.query(SQL, safeValues)
+    .then( results => {
+      if(results.rowCount > 0){
+        console.log('TALKED TO DATABASE!');
+        response.status(200).send(results.rows[0]);
+      } else {
+        superagent.get(url)
+        //first reference to data so this is where the data lives that we want to save to the database
+          .then( data => {
+            console.log('TALKED TO API!')
+            // console.log(data.body[0]);
+            //value that we want lives inside the body at index 0. data.body is an array which is why we get [0]
+            const locationData = data.body[0];
+            const location = new Location(city, locationData);
+    
+            //TODO: we want to save the location data to the database, after retrieving it from teh API. But the data that we save is not from the API, we save the data that we got back from the API and pass thru the constructor
+            let SQL = 'INSERT INTO location (search_query, longitude, latitude, formatted_query) VALUES ($1, $2, $3, $4)';
+    
+            //safeValues need to reflect the properties of location object
+            let safeValues = [location.search_query, location.longitude, location.latitude, location.formatted_query];
+    
+            client.query(SQL, safeValues)
+              .then( () => {
+                // console.log('result.rows>>>', results.rows);
+                response.status(200).json(location);
+              })
+              .catch(error => {
+                console.log(error);
+              });
+            // response.status(200).send(location);
+          });
+      }
     });
 }
+
+// console.log(url);
+ 
+
 
 function weatherHandler(request, response){
   let key = process.env.WEATHER_API_KEY;
@@ -100,7 +99,7 @@ function weatherHandler(request, response){
         descriptionData = data.body.data.map(weatherData => {
           return new Weather(weatherData);
         });
-        console.log(descriptionData);
+        // console.log(descriptionData);
         response.status(200).json(descriptionData);
       }
       catch(error) {
@@ -126,13 +125,13 @@ function Weather (result) {
   this.time = new Date(result.datetime).toDateString();
   this.forecast = result.weather.description;
 
-  console.log();
+  // console.log();
 }
 
-
-// app.listen(PORT, () => {
-//   console.log(`Now listening on port, ${PORT}`);
-// });
-
-
-
+client.connect()
+  .then( () => {
+    app.listen(PORT, () => {
+      console.log(`now listening on port ${PORT}`);
+      console.log(`connected to database ${client.connectionParameters.database}`);
+    });
+  });

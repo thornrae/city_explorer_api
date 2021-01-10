@@ -4,9 +4,9 @@ DROP TABLE IF EXISTS location;
 
 CREATE TABLE location (
   id SERIAL PRIMARY KEY,
-  city VARCHAR(255), 
-  lon NUMERIC(10,7),
-  lat NUMERIC(10,7),
-  formatted VARCHAR (255)
+  search_query VARCHAR(255), 
+  longitude NUMERIC(10,7),
+  latitude NUMERIC(10,7),
+  formatted_query VARCHAR (255)
 );
 
