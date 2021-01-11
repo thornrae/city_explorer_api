@@ -2,7 +2,7 @@
 
 **Author**: Taylor Thornton
 **Version**: 1.0.0 (increment the patch/fix version number if you make more commits past your first submission)
-## Overview
+## Overview LAB 06
 Lab06 for City Explorer uses two flat JSON files and, when connected to the front end website, uses a constructor to create location objects which are also used to determine the city's upcoming weather descriptions. 
 
 ## Getting Started
@@ -38,7 +38,7 @@ Actual time needed to complete: 1 hours
 
 -->
 <!-- ----------------------------------------------------- -->
-## Overview
+## Overview LAB 07
 Lab07 for City Explorer uses two API's to return weather information for a specific location submitted by a user. 
 
 ## Getting Started
@@ -74,7 +74,7 @@ Actual time needed to complete: 1 hours
 
 <!-- ------------------------------------------------ -->
 
-## Overview
+## Overview LAB 08
 Lab08 for City Explorer uses two API's to return weather information for a specific location submitted by a user. But also stores location data using POSTGRES in a database to reduce request/response time. 
 
 ## Getting Started
@@ -104,6 +104,6 @@ Number and name of feature: Deploy
 Estimate of time needed to complete: 30 minutes
 Start time: 5:00
 Finish time: 6:30
-Actual time needed to complete: STILL NOT COMPLETE. Running into problems with Heroku deployment.  Will seek assistance.
+Actual time needed to complete: 30 minutes.
 
 
