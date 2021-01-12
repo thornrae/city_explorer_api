@@ -25,17 +25,9 @@ app.get('/', (request, response) => {
 
 app.get('/location', locationHandler);
 app.get('/weather', weatherHandler);
+app.get('/yelp', restaurantHandler);
+app.get('/movies', movieHandler);
 app.use('*', errorHandler);
-
-//prob remove this
-// app.get('/add', (request, response) => {
-
-//   let city = request.query.city;
-//   let lon = request.query.longitude;
-//   let lat = request.query.latitude;
-//   let formatted = request.formatted_query;
-// });
-
 
 // FUNCTIONS
 function locationHandler(request, response) {
@@ -44,7 +36,6 @@ function locationHandler(request, response) {
   let key = process.env.GEOCODE_API_KEY;
   const url = `https://us1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
 
-  //TODO: we want to check the database for the location data, if location is not in database, make API call(SQL: SELECT) can do SELECT * rather than having all of them listed
   let SQL = 'SELECT search_query, latitude, longitude, formatted_query FROM location WHERE search_query =  $1';
   let safeValues = [city];
 
@@ -55,37 +46,25 @@ function locationHandler(request, response) {
         response.status(200).send(results.rows[0]);
       } else {
         superagent.get(url)
-        //first reference to data so this is where the data lives that we want to save to the database
           .then( data => {
-            console.log('TALKED TO API!')
-            // console.log(data.body[0]);
-            //value that we want lives inside the body at index 0. data.body is an array which is why we get [0]
+            console.log('TALKED TO API!');
             const locationData = data.body[0];
             const location = new Location(city, locationData);
-    
-            //TODO: we want to save the location data to the database, after retrieving it from teh API. But the data that we save is not from the API, we save the data that we got back from the API and pass thru the constructor
             let SQL = 'INSERT INTO location (search_query, longitude, latitude, formatted_query) VALUES ($1, $2, $3, $4)';
-    
-            //safeValues need to reflect the properties of location object
+
             let safeValues = [location.search_query, location.longitude, location.latitude, location.formatted_query];
     
             client.query(SQL, safeValues)
               .then( () => {
-                // console.log('result.rows>>>', results.rows);
                 response.status(200).json(location);
               })
               .catch(error => {
                 console.log(error);
               });
-            // response.status(200).send(location);
           });
       }
     });
 }
-
-// console.log(url);
- 
-
 
 function weatherHandler(request, response){
   let key = process.env.WEATHER_API_KEY;
@@ -99,7 +78,6 @@ function weatherHandler(request, response){
         descriptionData = data.body.data.map(weatherData => {
           return new Weather(weatherData);
         });
-        // console.log(descriptionData);
         response.status(200).json(descriptionData);
       }
       catch(error) {
@@ -107,6 +85,65 @@ function weatherHandler(request, response){
       }
     }
     );
+}
+
+function restaurantHandler(request, response){
+  let key = process.env.YELP_API_KEY;
+  const url = `https://api.yelp.com/v3/businesses/search`;
+
+  const perPage = 5;
+  const page = request.query.page || 1;
+  const start = ( (page - 1) * perPage + 1);
+
+  //headers
+  const queryParams = {
+    latitude: request.query.latitude,
+    longitude: request.query.longitude,
+    limit: perPage,
+    offset: start
+  };
+
+  // console.log('queryparams>>>', queryParams);
+  
+  return superagent.get(url)
+  //build headers
+    .set('Authorization', `Bearer ${key}`)
+    .query(queryParams)
+    .then( data => {
+      const results = data.body;
+      // console.log(results);
+      const restaurantData = [];
+      results.businesses.forEach(value => {
+        restaurantData.push(new Restaurant(value));
+      });
+      console.log(restaurantData);
+      // console.log('restaurant data>>>>', restaurantData);
+      response.status(200).send(restaurantData);
+    });
+}
+
+function movieHandler(request, response) {
+  let key = process.env.MOVIE_API_KEY;
+  let url = `https://api.themoviedb.org/3/search/movie?api_key=${key}`;
+
+  const queryParams = {
+    query: request.query.search_query
+  };
+
+  return superagent.get(url)
+    .set('Authorization', `Bearer ${key}`)
+    .query(queryParams)
+    .then( data => {
+      const movieResults = data.body.results;
+      console.log(data.body);
+      // console.log('movie results', results);
+      const movieData=[];
+      movieResults.forEach(value => {
+        movieData.push(new Movies(value));
+      });
+      response.status(200).send(movieData);
+    });
+
 }
 
 function errorHandler(request, response) {
@@ -124,9 +161,26 @@ function Location(city, geoData){
 function Weather (result) {
   this.time = new Date(result.datetime).toDateString();
   this.forecast = result.weather.description;
-
-  // console.log();
 }
+
+function Restaurant (entry){
+  this.name = entry.name;
+  this.image_url = entry.image_url;
+  this.price = entry.price;
+  this.rating = entry.rating;
+  this.url - entry.url;
+}
+
+function Movies (data) {
+  this.title = data.title;
+  this.overview = data.overview;
+  this.average_votes = data.vote_average;
+  this.total_votes = data.vote_count;
+  this.image_url = data.poster_path;
+  this.popularity = data.popularity;
+  this.released_on = data.release_date;
+}
+
 
 client.connect()
   .then( () => {

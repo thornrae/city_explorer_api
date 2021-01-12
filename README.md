@@ -106,4 +106,44 @@ Start time: 5:00
 Finish time: 6:30
 Actual time needed to complete: 30 minutes.
 
+<!-- ---------------------------------------------- -->
+**Author**: Your Name Goes Here
+**Version**: 1.0.0 (increment the patch/fix version number if you make more commits past your first submission)
+
+## Overview lAB 09
+When a user searches for a city, they receive weather information as well as restaurants and movies set in that area. 
+
+## Getting Started
+API keys for location, weather, restaurant and movie requests are needed.  This web app is deployed thru Heroku. 
+
+## Architecture
+Technologies and languages used: JavaScript, POSTGres, SQL, Cors, Express, Superagent, PG and dotenv are all required.
+
+
+## Change Log
+01-12-2021 12:00pm - fully functional GET route for yelp API
+01-12-2021 12:45 - fully functional pagination logic for yelp query results
+
+
+## Credits and Collaborations
+TA, Brai, helped to ID the authorization and bearer key needed to run API as well as locate the reference name of the array object for yelp results (businesses)
+
+Number and name of feature: Yelp
+Estimate of time needed to complete: 2 hours
+Start time: 10
+Finish time: 12
+Actual time needed to complete: 2 hours
+
+Number and name of feature: Pagination
+Estimate of time needed to complete: 2 hours
+Start time: 12:30
+Finish time: 12:45
+Actual time needed to complete: 15 minutes
+
+Number and name of feature: Movies
+Estimate of time needed to complete: 2 hours
+Start time: 12:50
+Finish time: 2:15
+Actual time needed to complete: 1 hour 25 minutes
+
 
